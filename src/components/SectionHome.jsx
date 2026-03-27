@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import gsap from 'gsap'
-import { Hand } from 'lucide-react'
+import { HandGrab } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 import deed1 from '../assets/deeds/deed-01.png'
@@ -8,7 +8,8 @@ import deed2 from '../assets/deeds/deed-02.png'
 import deed3 from '../assets/deeds/deed-03.png'
 import deed4 from '../assets/deeds/deed-04.png'
 import deed5 from '../assets/deeds/deed-05.png'
-import uiScreenshot from '../assets/ui-screenshot.jpg'
+import bigScreenshot  from '../assets/big-ui-to-scale-new.png'
+import noShapeUi      from '../assets/no-shape-ui.png'
 
 const DEED_IMAGES = [deed1, deed2, deed3, deed4, deed5]
 
@@ -45,8 +46,8 @@ const STEPS = [
   'Optimize Spatial',
 ]
 
-// 5 beats: tiles+text-transition → upload → shape+process → text transition → UI
-const BEAT_DURATIONS = [7000, 12000, 9000, 3800, 9000]
+// 5 beats: tiles → upload → shape+process → big screenshot sequence → dwell
+const BEAT_DURATIONS = [7000, 12000, 9000, 12000, 8000]
 
 const SHAPE_PATH     = 'M761.667 2.5H563.667V18.5C544.467 10.5 355.667 85.1667 263.667 123.5L249.667 101.5L1.66699 323.5C333.667 109.1 646.667 37.5 761.667 28.5V2.5Z'
 const SHAPE_PATH_LEN = 1950
@@ -62,16 +63,25 @@ export default function SectionHome({ autoplay, active, onComplete }) {
   const [animKey, setAnimKey]             = useState(0)
   const [resetKey, setResetKey]           = useState(0)
 
-  const rowInnerRefs  = useRef([null, null, null])
-  const stackGroupRef = useRef(null)
-  const stackRefs     = useRef([])
-  const handRef       = useRef(null)
-  const uploadZoneRef = useRef(null)
-  const phrase1Ref    = useRef(null)
-  const phrase2Ref    = useRef(null)
-  const b0Phrase1Ref  = useRef(null)
-  const b0Phrase2Ref  = useRef(null)
-  const b0SubRef      = useRef(null)
+  const rowInnerRefs      = useRef([null, null, null])
+  const stackGroupRef     = useRef(null)
+  const stackRefs         = useRef([])
+  const handRef           = useRef(null)
+  const uploadZoneRef     = useRef(null)
+  const b0Phrase1Ref      = useRef(null)
+  const b0Phrase2Ref      = useRef(null)
+  const b0SubRef          = useRef(null)
+  const beat2HeadlineRef  = useRef(null)
+  const pipelineWrapRef   = useRef(null)
+  const bigShotZoomedRef  = useRef(null)
+  const bigShotCardRef    = useRef(null)
+  const scaleWrapperRef   = useRef(null)
+  const bgImageRef        = useRef(null)
+  const drawnShapeRef     = useRef(null)
+  const vignetteRef       = useRef(null)
+  const phrase3aRef       = useRef(null)
+  const phrase3bRef       = useRef(null)
+  const beat3HeadlineRef  = useRef(null)
 
   const timerRef    = useRef(null)
   const stepTimers  = useRef([])
@@ -160,6 +170,19 @@ export default function SectionHome({ autoplay, active, onComplete }) {
     if (b0Phrase1Ref.current) gsap.set(b0Phrase1Ref.current.querySelectorAll('span'), { y: 0, opacity: 0 })
     if (b0Phrase2Ref.current) gsap.set(b0Phrase2Ref.current.querySelectorAll('span'), { y: 0, opacity: 0 })
     if (b0SubRef.current)     gsap.set(b0SubRef.current, { opacity: 1 })
+
+    // Hard reset beat 2 headline/pipeline
+    if (beat2HeadlineRef.current) gsap.set(beat2HeadlineRef.current, { opacity: 1 })
+    if (pipelineWrapRef.current)  gsap.set(pipelineWrapRef.current,  { opacity: 1 })
+
+    // Hard reset beat 2+ persistent layer
+    if (scaleWrapperRef.current) gsap.set(scaleWrapperRef.current, { scale: 3.8, transformOrigin: '50% 50%' })
+    if (bgImageRef.current)      gsap.set(bgImageRef.current, { opacity: 0, borderRadius: 0, boxShadow: 'none' })
+    if (drawnShapeRef.current)   gsap.set(drawnShapeRef.current, { scale: 1, transformOrigin: '50% 50%' })
+    if (vignetteRef.current)     gsap.set(vignetteRef.current, { opacity: 0 })
+    if (phrase3aRef.current)      gsap.set(phrase3aRef.current.querySelectorAll('span'), { opacity: 0, y: 0 })
+    if (phrase3bRef.current)      gsap.set(phrase3bRef.current.querySelectorAll('span'), { opacity: 0, y: 0 })
+    if (beat3HeadlineRef.current) gsap.set(beat3HeadlineRef.current.querySelectorAll('span'), { opacity: 0, y: 0 })
 
     requestAnimationFrame(() => {
       startScrollAnimations()
@@ -331,20 +354,32 @@ export default function SectionHome({ autoplay, active, onComplete }) {
     setSvgProgress(0)
     setCheckedSteps([])
     setShapeDone(false)
+    if (beat2HeadlineRef.current) gsap.set(beat2HeadlineRef.current, { opacity: 1 })
+    if (pipelineWrapRef.current)  gsap.set(pipelineWrapRef.current,  { opacity: 1 })
 
-    // GSAP-eased shape draw — power1.inOut feels mechanical and purposeful
     progressObj.current.value = 0
-    const tween = gsap.to(progressObj.current, {
+    const shapeTween = gsap.to(progressObj.current, {
       value: 1,
       duration: 5.5,
       ease: 'power1.inOut',
       delay: 0.3,
       onUpdate: () => setSvgProgress(progressObj.current.value),
-      onComplete: () => setShapeDone(true),
+      onComplete: () => {
+        setShapeDone(true)
+        // Brief dwell on "Extraction complete", then fade out and advance
+        const seq = gsap.timeline({ delay: 0.1 })
+        activeTl.current = seq
+        seq
+          .to([beat2HeadlineRef.current, pipelineWrapRef.current],
+            { opacity: 0, duration: 0.4, ease: 'power2.in' })
+          // Map and vignette fade in behind the drawn shape — the "persistence" moment
+          .to(bgImageRef.current, { opacity: 1, duration: 1.4, ease: 'power1.inOut' }, '+=0.1')
+          .to(vignetteRef.current,   { opacity: 1, duration: 1.0, ease: 'power1.inOut' }, '+=0.1')
+          .call(() => { clearTimeout(timerRef.current); setBeat(3) }, null, '+=0.4')
+      },
     })
-    activeTl.current = tween
+    activeTl.current = shapeTween
 
-    // Steps check off in sync with shape draw (~1s each)
     const STEP_DUR = 1000
     STEPS.forEach((_, i) => {
       const t = setTimeout(() => setCheckedSteps(prev => [...prev, i]), 400 + (i + 1) * STEP_DUR)
@@ -353,35 +388,52 @@ export default function SectionHome({ autoplay, active, onComplete }) {
   }
 
   function enterBeat3() {
-    const p1 = phrase1Ref.current
-    const p2 = phrase2Ref.current
-    if (!p1 || !p2) return
+    const scaleEl = scaleWrapperRef.current
+    const p3a     = phrase3aRef.current
+    const p3b     = phrase3bRef.current
+    const hl      = beat3HeadlineRef.current
 
-    const words1 = p1.querySelectorAll('span')
-    const words2 = p2.querySelectorAll('span')
+    const words3a = p3a ? p3a.querySelectorAll('span') : []
+    const words3b = p3b ? p3b.querySelectorAll('span') : []
+    const hlWords = hl  ? hl.querySelectorAll('span')  : []
 
-    gsap.set([words1, words2], { y: 0, opacity: 0 })
+    // Map + shape already visible from beat 2 — just reset text
+    gsap.set([...words3a, ...words3b, ...hlWords], { y: 40, opacity: 0 })
 
     const tl = gsap.timeline()
     activeTl.current = tl
 
     tl
-      // Phrase 1: words stagger up
-      .fromTo(words1,
-        { y: 48, opacity: 0 },
-        { y: 0, opacity: 1, stagger: 0.06, duration: 0.65, ease: 'power3.out' }
-      )
-      // Hold briefly, then exit words upward
-      .to(words1,
-        { y: -40, opacity: 0, stagger: 0.04, duration: 0.4, ease: 'power2.in' },
-        '+=0.85'
-      )
-      // Phrase 2: words stagger up right after
-      .fromTo(words2,
-        { y: 48, opacity: 0 },
+      // "Every deed becomes a shape." — word stagger in
+      .fromTo(words3a,
+        { y: 40, opacity: 0 },
         { y: 0, opacity: 1, stagger: 0.06, duration: 0.65, ease: 'power3.out' },
-        '-=0.05'
+        0.3
       )
+      // Phrase A exits upward
+      .to(words3a, { y: -36, opacity: 0, stagger: 0.04, duration: 0.4, ease: 'power2.in' }, 2.8)
+      // "Every shape tells a story." — word stagger in
+      .fromTo(words3b,
+        { y: 40, opacity: 0 },
+        { y: 0, opacity: 1, stagger: 0.06, duration: 0.65, ease: 'power3.out' },
+        3.1
+      )
+      // Bento zoom-out: scale wrapper and drawn shape scale back together
+      .to(scaleEl, { scale: 1, duration: 2.2, ease: 'power2.inOut' }, 5.0)
+      .to(drawnShapeRef.current, { scale: 1 / 3.8, y: 30, transformOrigin: '50% 50%', duration: 2.2, ease: 'power2.inOut' }, 5.0)
+      // Image gets rounded corners + shadow as it settles into card form
+      .to(bgImageRef.current, { borderRadius: 14, boxShadow: '0 20px 60px rgba(0,0,0,0.13)', duration: 2.2, ease: 'power2.inOut' }, 5.0)
+      .to(vignetteRef.current, { opacity: 0, duration: 1.8, ease: 'power2.inOut' }, 5.0)
+      // Phrase B exits as the zoom-out begins
+      .to(words3b, { y: -36, opacity: 0, stagger: 0.04, duration: 0.4, ease: 'power2.in' }, 5.4)
+      // Headline words stagger in above
+      .fromTo(hlWords,
+        { y: 40, opacity: 0 },
+        { y: 0, opacity: 1, stagger: 0.055, duration: 0.65, ease: 'power3.out' },
+        7.2
+      )
+      // Advance to beat 4 dwell
+      .call(() => { clearTimeout(timerRef.current); setBeat(4) }, null, 9.5)
   }
 
   const goToBeat = (b) => {
@@ -523,17 +575,17 @@ export default function SectionHome({ autoplay, active, onComplete }) {
             willChange: 'transform', zIndex: 20,
           }}
         >
-          <Hand size={72} strokeWidth={1.5} className="text-primary" fill="white" />
+          <HandGrab size={72} strokeWidth={2} className="text-white" />
         </div>
       </div>
 
-      {/* ══ BEAT 2: Shape draws centered + pipeline status below ═════════ */}
+      {/* ══ BEAT 2: Shape draws ══════════════════════════════════════════ */}
       <div
-        className="absolute inset-0 flex flex-col items-center justify-center gap-12 px-10 pb-4"
-        style={{ opacity: beat === 2 ? 1 : 0, transition: 'opacity 0.7s ease', pointerEvents: beat === 2 ? 'auto' : 'none' }}
+        className="absolute inset-0 flex flex-col items-center justify-between px-10 pt-[16vh] pb-[18vh]"
+        style={{ opacity: beat === 2 ? 1 : 0, transition: 'opacity 0.7s ease', pointerEvents: beat === 2 ? 'auto' : 'none', zIndex: 1 }}
       >
-        {/* Headline */}
         <div
+          ref={beat2HeadlineRef}
           key={`b2h-${animKey}`}
           className="text-center flex-shrink-0 pointer-events-none"
           style={{ opacity: 0, animation: beat === 2 ? 'fadeInUp 0.65s ease 0.2s forwards' : 'none' }}
@@ -549,104 +601,114 @@ export default function SectionHome({ autoplay, active, onComplete }) {
           </p>
         </div>
 
-        {/* Shape — centered, ~20% smaller than full-bleed */}
-        <div style={{ width: '70%', maxWidth: 680, flexShrink: 0 }}>
+        <div
+          ref={pipelineWrapRef}
+          style={{ width: '48%', maxWidth: 480, flexShrink: 0, opacity: svgProgress > 0.02 ? 1 : 0, transition: 'opacity 0.5s ease' }}
+        >
+          <PipelineStatus checkedSteps={checkedSteps} shapeDone={shapeDone} />
+        </div>
+      </div>
+
+      {/* ══ BEATS 2→4: Persistent map+shape layer (always mounted, GSAP-controlled) */}
+      <div
+        className="absolute inset-0 overflow-hidden flex items-center justify-center"
+        style={{ pointerEvents: beat >= 3 ? 'auto' : 'none' }}
+      >
+        {/* Headline + screenshot as one centered group */}
+        <div className="flex flex-col items-center gap-6">
+          <h1
+            ref={beat3HeadlineRef}
+            className="text-[48px] font-bold text-primary tracking-tight leading-tight text-center pointer-events-none select-none"
+          >
+            {'From deed to database. Automatically.'.split(' ').map((w, i) => (
+              <span key={i} style={{ display: 'inline-block', marginRight: '0.28em' }}>{w}</span>
+            ))}
+          </h1>
+
+          {/* Image — scaleWrapper zooms out */}
+          <div ref={scaleWrapperRef} style={{ flexShrink: 0 }}>
+            <div ref={bgImageRef} style={{ opacity: 0, position: 'relative', overflow: 'hidden', borderRadius: 0 }}>
+              <img
+                src={noShapeUi} alt="Phase2_Land interface" draggable={false}
+                className="block"
+                style={{
+                  maxWidth: 'min(1100px, 90vw)',
+                  maxHeight: '72vh',
+                  width: 'auto',
+                  height: 'auto',
+                  display: 'block',
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Drawn shape — persists from beat 2, centered, scales down in beat 3 */}
+        <div
+          ref={drawnShapeRef}
+          style={{
+            position: 'absolute', inset: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            pointerEvents: 'none',
+            opacity: beat >= 2 ? 1 : 0,
+            transition: 'opacity 0.7s ease',
+          }}
+        >
           <svg
-            width="100%"
+            width="70%"
+            style={{ maxWidth: 680, display: 'block', overflow: 'visible' }}
             viewBox="0 0 765 326"
-            style={{ display: 'block', overflow: 'visible' }}
           >
             <path
               d={SHAPE_PATH}
-              fill="none"
-              stroke="#16a3d6"
-              strokeWidth="5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              fill="none" stroke="#16a3d6" strokeWidth="5"
+              strokeLinecap="round" strokeLinejoin="round"
               style={{
                 strokeDasharray: SHAPE_PATH_LEN,
                 strokeDashoffset: SHAPE_PATH_LEN * (1 - svgProgress),
               }}
             />
             <path
-              d={SHAPE_PATH}
-              fill="#16a3d6"
-              style={{
-                fillOpacity: svgProgress >= 0.98 ? 0.88 : 0,
-                transition: 'fill-opacity 0.8s ease',
-              }}
+              d={SHAPE_PATH} fill="#16a3d6"
+              style={{ fillOpacity: svgProgress >= 0.98 ? 0.88 : 0, transition: 'fill-opacity 0.8s ease' }}
             />
           </svg>
         </div>
 
-        {/* Pipeline status bar — UI-element feel */}
+        {/* Vignette — feathers edges while zoomed, fades out on reveal */}
         <div
+          ref={vignetteRef}
+          className="absolute inset-0 pointer-events-none"
           style={{
-            width: '48%', maxWidth: 480, flexShrink: 0,
-            opacity: svgProgress > 0.02 ? 1 : 0,
-            transition: 'opacity 0.5s ease',
-          }}
-        >
-          <PipelineStatus checkedSteps={checkedSteps} shapeDone={shapeDone} />
-        </div>
-      </div>
-
-      {/* ══ BEAT 3: Text transition — phrase 1 exits, phrase 2 enters ════ */}
-      <div
-        className="absolute inset-0 flex items-center justify-center"
-        style={{ opacity: beat === 3 ? 1 : 0, transition: 'opacity 0.6s ease', pointerEvents: beat === 3 ? 'auto' : 'none' }}
-      >
-        <div className="relative text-center px-10 select-none pointer-events-none">
-          {/* Phrase 1 */}
-          <div ref={phrase1Ref} className="absolute inset-0 flex items-center justify-center">
-            <h1 className="text-[52px] font-bold text-primary tracking-tight leading-none whitespace-nowrap">
-              {'Every deed becomes a shape.'.split(' ').map((w, i) => (
-                <span key={i} style={{ display: 'inline-block', marginRight: '0.28em' }}>{w}</span>
-              ))}
-            </h1>
-          </div>
-          {/* Phrase 2 */}
-          <div ref={phrase2Ref} className="flex items-center justify-center">
-            <h1 className="text-[52px] font-bold text-primary tracking-tight leading-none whitespace-nowrap">
-              {'Every shape tells a story.'.split(' ').map((w, i) => (
-                <span key={i} style={{ display: 'inline-block', marginRight: '0.28em' }}>{w}</span>
-              ))}
-            </h1>
-          </div>
-        </div>
-      </div>
-
-      {/* ══ BEAT 4: "Connected to your data…" + UI screenshot ════════════ */}
-      <div
-        className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-10 pb-16"
-        style={{ opacity: beat === 4 ? 1 : 0, transition: 'opacity 0.7s ease', pointerEvents: beat === 4 ? 'auto' : 'none' }}
-      >
-        <h1
-          key={`b4h-${animKey}`}
-          className="text-[48px] font-bold text-primary tracking-tight leading-tight text-center flex-shrink-0"
-          style={{ opacity: 0, animation: beat === 4 ? 'fadeInUp 0.65s ease 0.15s forwards' : 'none' }}
-        >
-          From deed to database. Automatically.
-        </h1>
-        <img
-          key={`b4i-${animKey}`}
-          src={uiScreenshot}
-          alt="Phase2_Land interface"
-          draggable={false}
-          className="rounded-2xl border border-border shadow-2xl block flex-shrink-0"
-          style={{
-            maxWidth: 'min(900px, 100%)',
-            maxHeight: 'calc(100vh - 260px)',
-            width: 'auto',
-            height: 'auto',
-            opacity: 0,
-            animation: beat === 4 ? 'fadeInUp 0.7s ease 0.4s forwards' : 'none',
+            background: 'radial-gradient(ellipse at center, transparent 40%, rgba(250,251,252,0.7) 70%, rgba(250,251,252,0.97) 90%)',
           }}
         />
+
+        {/* Text overlays (frames 2 and 3) */}
+        <div
+          ref={phrase3aRef}
+          className="absolute top-[9%] left-0 right-0 text-center pointer-events-none select-none"
+        >
+          <h1 className="text-[52px] font-bold text-primary tracking-tight leading-none">
+            {'Every deed becomes a shape.'.split(' ').map((w, i) => (
+              <span key={i} style={{ display: 'inline-block', marginRight: '0.28em' }}>{w}</span>
+            ))}
+          </h1>
+        </div>
+        <div
+          ref={phrase3bRef}
+          className="absolute top-[9%] left-0 right-0 text-center pointer-events-none select-none"
+        >
+          <h1 className="text-[52px] font-bold text-primary tracking-tight leading-none">
+            {'Every shape tells a story.'.split(' ').map((w, i) => (
+              <span key={i} style={{ display: 'inline-block', marginRight: '0.28em' }}>{w}</span>
+            ))}
+          </h1>
+        </div>
       </div>
 
       {/* ══ Beat dots ════════════════════════════════════════════════════ */}
-      <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+      <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-2 z-20">
         {BEAT_DURATIONS.map((_, i) => (
           <button
             key={i}
