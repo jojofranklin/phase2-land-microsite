@@ -62,7 +62,7 @@ export default function SectionInfo() {
             {/* CTA */}
             <div className="flex flex-col gap-5">
               <a
-                href="https://phase2interactive.com"
+                href="https://phase2online.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-between px-5 py-3.5 rounded-xl bg-white text-primary font-semibold text-sm hover:bg-white/90 transition-colors group"
