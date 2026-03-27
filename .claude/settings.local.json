@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__claude_ai_Figma__get_design_context",
+      "mcp__claude_ai_Figma__get_variable_defs",
+      "mcp__claude_ai_Figma__get_metadata",
+      "Bash(npm create:*)",
+      "Bash(printf \"phase2-land-microsite\\\\n\")",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "WebFetch(domain:gsap.com)",
+      "Bash(find /Users/jojofranklin/projects/Phase2_LandMicroSite -name *.png -o -name *.svg -o -name *.jpg)",
+      "Bash(npx vite:*)",
+      "Bash(ffprobe -v quiet -print_format json -show_streams /Users/jojofranklin/projects/Phase2_LandMicroSite/assets/test-demo.mov)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(s.get\\(''''codec_type''''\\), s.get\\(''''codec_name''''\\), s.get\\(''''width'''',''''''''\\), s.get\\(''''height'''',''''''''\\), s.get\\(''''r_frame_rate'''',''''''''\\), s.get\\(''''bit_rate'''',''''''''\\)\\) for s in d[''''streams'''']]\")",
+      "Bash(ffprobe:*)",
+      "Bash(ffmpeg -i /Users/jojofranklin/projects/Phase2_LandMicroSite/assets/test-demo.mov -c:v libx264 -crf 26 -preset slow -r 30 -vf \"scale=trunc\\(iw/2\\)*2:trunc\\(ih/2\\)*2\" -c:a aac -b:a 96k -movflags +faststart -y /Users/jojofranklin/projects/Phase2_LandMicroSite/src/assets/test-demo.mp4)",
+      "Bash(curl -s http://localhost:5175)",
+      "Bash(curl -s \"http://localhost:5175/src/App.jsx\")",
+      "Bash(node:*)",
+      "Bash(gh auth:*)",
+      "Bash(gh api:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

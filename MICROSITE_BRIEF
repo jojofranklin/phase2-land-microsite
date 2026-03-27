@@ -1,0 +1,246 @@
+# Phase2_Land Microsite — Build Brief
+
+## Project Overview
+
+This is a **showcase microsite** for Phase2_Land, a code- and AI-driven solution that converts deed documentation into a structured database and automatically generates a geodatabase for use in GIS applications.
+
+The microsite serves as a **digital leave-behind and trade show booth display** for the AASHTO ROW conference in Cincinnati (end of April). It will run on a screen in the booth on autoplay, but must support manual navigation when someone walks up and engages. It is not the live app demo — that runs separately. This is the eye-catching overview.
+
+---
+
+## Design System
+
+**Primary source of truth: Figma file**
+`https://www.figma.com/design/jBuQ9DURWO08VLm16LFoHO/Phase2_Land?node-id=9106-31946`
+
+Use the Figma MCP to read this file directly. Pull all colors, typography, spacing, border radius, and design tokens from here. This is the same file used to build the prototype — everything is already defined. Do not invent or hardcode values.
+
+The wireframe layouts for the microsite are in this same Figma file at node `9106-31946`. Reference these frames for the layout, animation sequence, and section structure before writing any code.
+
+**Also pull from the prototype in `/Users/jojofranklin/projects/Phase2_Land`** for any token implementation patterns already in code — the Figma file and prototype should be consistent.
+
+The brand uses the `P2_Land` / `Phase2_` naming convention with the underscore as a brand element.
+
+The aesthetic is **clean, minimal, and confident** — think Linear, Vercel, Stripe product pages. White/off-white backgrounds, precise typography, intentional use of space. What makes it feel polished is the quality of animations and transitions, not decoration.
+
+---
+
+## Structure
+
+One long vertical scrolling page. Fixed bottom navigation bar throughout. Three sections: **Home, Features, Info.**
+
+---
+
+## Bottom Navigation Bar (Fixed)
+
+Stays visible at all times, fixed to the bottom of the viewport.
+
+Contains:
+- `P2_Land` logo/wordmark (left)
+- Nav links: `Home` | `Features` | `Info` — active state shows pill/highlight around current section
+- Autoplay toggle button (right) — play/pause icon, controls whether the site auto-scrolls through content
+
+Clicking a nav item snaps/scrolls to that section smoothly.
+
+---
+
+## Section 1: Home (The Hero Animation Sequence)
+
+This is a scroll-driven cinematic sequence. The user either watches it autoplay or scrolls through it manually. Each beat is a scroll step. Transitions must feel smooth, physical, and intentional — not janky or abrupt.
+
+---
+
+### Beat 1 — The Problem (Deed Fan)
+
+**Layout:** Full viewport. Light background. Large bold headline centered top. 4-5 deed scan images fanned out across the lower portion of the screen like physical documents spread on a table. Slight rotation on each, varied. They should feel like real scanned artifacts — aged paper, handwritten text, blueprint-style documents.
+
+**Copy:**
+- Headline: `Thousands of deeds.`
+- Subhead: `Handwritten. Scanned. Unstructured. Unsearchable.`
+
+**Assets:** Use deed scan images from `/assets/deeds/` folder.
+
+---
+
+### Beat 2 — The Upload (Deed Stack + Drop)
+
+**Transition from Beat 1:** The fanned deed documents animate together — they gather and stack into a single neat pile center screen. This should feel like a smooth drag-and-drop from your desktop. The cards have weight. Use a natural ease-out with slight overshoot/settle — not a linear tween. Think physical paper landing on a surface.
+
+**Layout:** The stacked deed pile sits center screen, slightly above center. Pagination dots below the stack (like a carousel indicator) hint at multiple documents.
+
+**Copy:**
+- Headline: `It starts with an upload.`
+- Subhead: `Drop a file. That's it.`
+
+---
+
+### Beat 3 — The Processing (Checklist UI)
+
+**Transition from Beat 2:** The deed stack animates into an upload zone / drop target. A stylized processing panel appears — this is a **polished wireframe-style UI component**, not a screenshot of the real app. Think how Linear or Vercel show their UI in marketing — abstracted, clean, readable. The panel shows a batch upload job with a sequential checklist of steps.
+
+**Processing steps (animate through sequentially, each lighting up/checking off):**
+1. Extract Pages
+2. Post-Process
+3. Group Instruments
+4. Process Instruments
+5. Extract Spatial
+6. Optimize Spatial
+
+Show `Upload batch · 1 file · just now` as the job header with a `Processing` status badge.
+
+Simultaneously, on the right side of the screen, a polygon SVG shape begins to faintly appear — just the outline starting to trace.
+
+**Copy:**
+- Headline: `We do the rest.`
+- Subhead: `Every page. Every instrument. Every spatial reference. Automatically.`
+
+---
+
+### Beat 4 — The Draw (SVG Animation)
+
+**Transition from Beat 3:** Processing completes (all steps checked). The UI panel fades or slides away. Focus narrows to the SVG polygon drawing itself on a clean background.
+
+The shape is a **long narrow right-of-way parcel** — similar to a strip of land running alongside a highway. Reference `/assets/map-shape.png` to approximate the shape. Generate an SVG path that closely traces this shape. It does not need to be geodetically accurate — it needs to look like a convincing real parcel.
+
+The line traces itself from one end to the other using SVG stroke-dashoffset animation. Deliberate pace — confident, not rushed. The shape should feel like it's being drawn by a precise hand.
+
+**Copy (appears after draw completes):**
+- `Every deed becomes a shape.`
+
+---
+
+### Beat 5 — The Map Reveal
+
+**Transition from Beat 4:** The SVG polygon holds its position. Map tiles fade/dissolve in underneath and around it — the world appears around the shape. Use a static map image from `/assets/map-with-shape.png`. The polygon is already there; the map context just arrives.
+
+**Copy:**
+- `Every shape tells a story.`
+
+---
+
+### Beat 6 — Full UI Unmask
+
+**Transition from Beat 5:** The map is centered full screen. Then the full application UI unmasks from both left and right edges simultaneously — side panels slide or reveal in from both sides like curtains opening. Suddenly the complete Phase2_Land interface is visible: AI chat panel on the left, map in the center, source documents / property panel on the right.
+
+Use `/assets/ui-screenshot.png` for the full app UI. Display it as a high-quality framed screenshot. This is the "and here's what you actually get" moment.
+
+**Copy:**
+- Headline: `Every shape tells a story.`
+- Subhead: `Connected to your data, your map, your workflow.`
+
+---
+
+## Section 2: Features (Demo Reel)
+
+**Transition from Hero:** The full UI screenshot scales or morphs — the app UI panel pins to the right side of the screen (sticky) while the left side scrolls up to reveal the Features section. A vertical feature list animates in on the left. This is a sticky scroll pattern — UI on right stays fixed while feature items scroll on the left.
+
+### Feature List Layout
+
+Left side: vertical list of feature titles with blue dot indicators. Active feature is expanded with a short description. Inactive features are collapsed to just the title. As user scrolls (or autoplay advances), the active item changes and the video on the right updates.
+
+**Glass effect:** If the feature video/screenshot overlaps with the UI panel, apply a subtle glassmorphism effect to handle the layering gracefully.
+
+### Feature Item Structure
+Each feature has:
+- Title (short, 2-4 words)
+- Description (1-2 sentences max)
+- Screen recording video (`/assets/demos/feature-X.mp4`)
+
+**Placeholder feature titles (to be updated with real copy):**
+1. Map Capabilities
+2. AI Q&A
+3. Deep Link to Source
+4. Summary View
+5. Metadata View
+6. Metes & Bounds
+7. Aliquot Example
+
+### Autoplay Behavior in Features
+When autoplay is on, each feature video plays through, then automatically advances to the next feature. When the last feature ends, advance to the Info section. When a user clicks a feature in the list, immediately jump to that feature and pause autoplay.
+
+---
+
+## Section 3: Info / CTA
+
+**Transition from Features:** Feature list completes. Big transitional moment — large bold text bridges the gap between Features and Info. Something like the last feature fading out and a clean centered statement appearing before the Info section loads.
+
+### Info Section Content
+- Brief description of Phase2_Land and Phase2 (the company)
+- Key proof point: Built for and deployed with the State of Oklahoma DOT
+- Testimonial from Ken (placeholder — content TBD, slot reserved)
+- Link out to Phase2 main website
+- Contact / request a demo CTA
+
+Layout should feel like a clean editorial footer — not a cluttered features list. Lots of space, confident typography, one clear action.
+
+---
+
+## Autoplay System
+
+The autoplay toggle in the bottom nav controls a global autoplay state.
+
+**When ON:**
+- Hero beats advance automatically on a timer (each beat ~3-4 seconds, drawing animation plays at its own pace)
+- Feature videos play through sequentially
+- Advances to next section automatically
+- Loops back to beginning after Info section
+- Designed to run unattended on a trade show booth screen
+
+**When OFF:**
+- User controls everything via scroll and clicking feature items
+- No automatic advancement
+
+**Manual override:** If the user scrolls or clicks while autoplay is on, autoplay pauses. After 30 seconds of inactivity, autoplay resumes.
+
+---
+
+## Asset Folder Structure
+
+```
+microsite/
+  assets/
+    deeds/
+      deed-01.jpg  (hero deed — most visually striking)
+      deed-02.jpg
+      deed-03.jpg
+      deed-04.jpg
+      deed-05.jpg
+    map-shape.png        (map screenshot with blue polygon shape)
+    ui-screenshot.png    (full app UI, high resolution)
+    demos/
+      feature-1.mp4
+      feature-2.mp4
+      feature-3.mp4
+      feature-4.mp4
+      feature-5.mp4
+      feature-6.mp4
+      feature-7.mp4
+  MICROSITE_BRIEF.md
+  index.html (or Next.js / React setup — match whatever stack the prototype uses)
+```
+
+**Note on missing assets:** Demo videos and some deed scans may not be available at build start. Build with clearly labeled placeholders — gray boxes with asset name and dimensions. The shell should be complete and functional so assets can be dropped in without code changes.
+
+---
+
+## Technical Notes
+
+- Match the tech stack of the prototype in `../prototype`
+- Pull design tokens (colors, fonts, spacing, border radius) from prototype — do not hardcode values
+- SVG polygon animation: use `stroke-dashoffset` technique
+- Scroll-driven animations: use Intersection Observer or scroll-linked animation library consistent with prototype stack
+- Videos: use `<video>` with `autoplay muted loop playsInline` attributes for demo clips
+- Bottom nav active state: update based on scroll position using Intersection Observer
+- Smooth scroll behavior throughout
+- Optimized for a widescreen display (trade show monitor) — design at 1920x1080 as primary target, but should also work at standard laptop resolutions for post-conference use
+
+---
+
+## What This Is Not
+
+- Not a marketing website with lots of copy
+- Not a documentation site
+- Not a live product demo (the real app handles that separately)
+- Not pixel-perfect fidelity to the real UI — the wireframe/abstracted style is intentional
+
+The microsite's job is to **make people stop walking** and then **make them want to see the real thing.**
